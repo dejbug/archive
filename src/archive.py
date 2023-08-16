@@ -11,6 +11,8 @@ MAXAGE = 60 * 60 * 24
 
 def parseArgs(args = sys.argv[1:]):
 	parser = argparse.ArgumentParser()
+	parser.set_defaults(cmd = '')
+
 	pp = parser.add_subparsers()
 
 	p = pp.add_parser('type')
