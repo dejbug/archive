@@ -1,6 +1,8 @@
 import re, urllib.parse
 
+import lib.log
 import lib.abs
+
 
 @lib.abs.stringify
 @lib.abs.dumpify
@@ -51,11 +53,13 @@ class Uri:
 
 	@classmethod
 	def parse(cls, text):
+		lib.log.info(f'parsing uri "{text}"')
 		uri = cls()
 		uri.init(text)
 
 		m = re.match(r'/(download|details|search)(/.+)?', uri.path)
 		if not m:
+			lib.log.warning(f'invalid uri "{text}"')
 			uri.ok = False
 			return uri
 
@@ -72,7 +76,6 @@ class Uri:
 				uri.type = 'file'
 				uri.root = pp[1]
 				uri.file = pp[2]
-				print(uri.file)
 				if uri.file.endswith(f'{uri.root}/_files.xml'):
 					uri.type = 'index'
 				pass

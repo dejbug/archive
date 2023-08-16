@@ -1,17 +1,21 @@
 import sys
-import argparse, re
+import argparse, fnmatch
 
 import xml.etree.ElementTree as ET
 
+import lib.log
 import lib.net
 import lib.cache
 import lib.archive
 
 MAXAGE = 60 * 60 * 24
 
+lib.log.setRoot(__file__)
+
 def parseArgs(args = sys.argv[1:]):
 	parser = argparse.ArgumentParser()
 	parser.set_defaults(cmd = '')
+	parser.add_argument('-d', '--debug', action='store_true')
 
 	pp = parser.add_subparsers()
 
@@ -28,6 +32,7 @@ def parseArgs(args = sys.argv[1:]):
 	p.add_argument('-n', '--sort-by-name', action='store_true')
 	p.add_argument('-s', '--sort-by-size', action='store_true')
 	p.add_argument('-r', '--sort-reversed', action='store_true')
+	p.add_argument('-g', '--match-glob-pattern')
 	p.add_argument('arg')
 	return parser, parser.parse_args(args)
 
@@ -40,13 +45,13 @@ def determineCliArgType(text):
 
 def fetchCached(uri):
 	uri = lib.archive.text(uri)
-	print(uri)
-	print(lib.cache.path(uri))
 	age = lib.cache.age(uri)
 	if age is None or age > MAXAGE:
+		lib.log.info('cache too old: re-fetching')
 		page = lib.net.fetch(uri)
 		lib.cache.set(uri, page)
 	else:
+		lib.log.info('cache ok')
 		page = lib.cache.get(uri)
 	return page
 
@@ -57,7 +62,7 @@ def listFilesForArchiveUri(arg):
 	# print(uri.text)
 	assert uri
 	page = fetchCached(uri)
-	# print(page.text)
+	lib.log.info(f'parsing xml ({len(page.text)} bytes)')
 	tree = ET.fromstring(page.text)
 	# print(tree, dir(tree))
 	out = []
@@ -88,6 +93,9 @@ def main(args = sys.argv[1:]):
 	parser, args = parseArgs(args)
 	# print(args); exit()
 
+	if args.debug:
+		lib.log.setDebugLevel(True)
+
 	if args.cmd == 'type':
 		for i, arg in enumerate(args.args, start=1):
 			out = f'{determineCliArgType(arg)}'
@@ -104,11 +112,14 @@ def main(args = sys.argv[1:]):
 
 	elif args.cmd == 'files':
 		files = listFilesForArchiveUri(args.arg)
-		print(-1 if files is None else len(files))
+		# print(-1 if files is None else len(files))
 		if args.sort_by_name:
 			files = sorted(files, key = lambda file: file['name'], reverse = args.sort_reversed)
 		if args.sort_by_size:
 			files = sorted(files, key = lambda file: file['size'], reverse = args.sort_reversed)
+		if args.match_glob_pattern:
+			# files = (f for f in files if f['name'].endswith('.pdf'))
+			files = (f for f in files if fnmatch.fnmatch(f['name'], args.match_glob_pattern))
 		for file in files:
 			size = file["size"]
 			if args.human_readable:

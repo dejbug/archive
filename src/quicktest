@@ -1,0 +1,31 @@
+#!/bin/bash
+
+cmd='python archive.py -d'
+
+printf -- "___________________________________\n"
+printf -- "TYPES\n\n"
+
+$cmd type -ise \
+	https://archive.org/details/republicshorey01platuoft \
+	https://archive.org/details/republicshorey01platuoft/ \
+	https://archive.org/details/republicshorey01platuoft/page/vii/mode/1up
+
+printf -- "\n___________________________________\n"
+printf -- "FILES\n\n"
+
+$cmd files -Hsr \
+	https://archive.org/details/republicshorey01platuoft/page/vii/mode/1up
+
+printf -- "\n___________________________________\n"
+printf -- "FILES (*.pdf)\n\n"
+
+$cmd files -Hsrg '*.pdf' \
+	https://archive.org/details/republicshorey01platuoft/page/vii/mode/1up
+
+printf -- "\n___________________________________\n"
+printf -- "FILES (*.????.gz)\n\n"
+
+$cmd files -Hsrg '*.????.gz' \
+	https://archive.org/details/republicshorey01platuoft/page/vii/mode/1up
+
+printf -- "\n"
