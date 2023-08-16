@@ -1,13 +1,13 @@
-import os, time, base64, pickle
+import os, time, base64, pickle, tempfile
 
-ROOT = '.cache'
+ROOT = tempfile.gettempdir()
 ENCODING = 'utf8'
 
 def path(slot):
 	assert isinstance(slot, (str, bytes))
 	if isinstance(slot, str): slot = slot.encode(ENCODING)
 	slot = base64.b64encode(slot, b'+-').decode("ascii")
-	return os.path.join(ROOT, slot)
+	return os.path.join(ROOT, slot + '.slot')
 
 def age(slot):
 	p = path(slot)

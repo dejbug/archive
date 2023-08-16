@@ -1,4 +1,5 @@
 /dist/
+/archive.egg-info/
 __pycache__/
 *.pyc
 .local/
